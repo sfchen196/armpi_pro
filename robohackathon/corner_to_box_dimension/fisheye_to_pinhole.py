@@ -57,16 +57,24 @@ if __name__ == '__main__':
     if fisheye_img is None:
         print("Error: Could not load the fisheye image.")
     else:
-        fisheye_img = cv2.resize(fisheye_img, (640, 480))
+        # fisheye_img = cv2.resize(fisheye_img, (640, 480))
         # Get the image dimensions (width, height)
         height, width = fisheye_img.shape[:2]
 
         # Example intrinsic matrix.
         # Replace these values with your actual calibration data.
-        K = np.array([[519.8387366 ,   0.0, 336.09275031],
+        img_dim_orig = (640, 480)
+
+        K_original = np.array([[519.8387366 ,   0.0, 336.09275031],
                       [  0.0, 519.18747867, 230.57932374],
                       [  0.0,   0.0,      1.0]])
-
+        scale_x = width / img_dim_orig[0]
+        scale_y = height / img_dim_orig[1]
+        K = K_original.copy()
+        K[0, 0] *= scale_x  # fx
+        K[1, 1] *= scale_y  # fy
+        K[0, 2] *= scale_x  # cx
+        K[1, 2] *= scale_y  # cy
         # Example distortion coefficients.
         # Replace with your actual fisheye distortion coefficients.
         D = np.array([-0.12899328, -0.50262509, 1.30822224, -1.05831611])
@@ -79,6 +87,8 @@ if __name__ == '__main__':
 
         # Convert the fisheye image to a pinhole model image.
         pinhole_img = converter.convert(fisheye_img)
+        # Save the undistorted image to a file.
+        cv2.imwrite('undistorted_image.jpg', pinhole_img)
 
         # Display both the original fisheye image and the undistorted image.
         cv2.imshow('Fisheye Image', fisheye_img)
